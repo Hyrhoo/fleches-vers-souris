@@ -1,5 +1,7 @@
 # fleches-vers-souris
 
+> Ce programme utilise la bibliothèque graphique **pygame** et la biblipthèque **pymunk** qu'il faut installer préalablement.
+
 un programme avec des flèches qui ce déplace vers la souris de l'utilisateur  
 les flèches ce déplacent toutes seuls et ce tourne vers le curseur  
 chaque flèches à une collison avec les autres et avec le curseur
