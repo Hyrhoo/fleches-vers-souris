@@ -17,14 +17,16 @@ RANDOM = 2
 NUM_ARROWS_X = 10
 NUM_ARROWS_Y = 10
 TYPE_GENERATION = RANDOM   # GENERATIV or RANDOM
-NUM_OF_AROWS = 10          # for RANDOM
+NUM_OF_AROWS = 20          # for RANDOM
 FPS = 30
 STEP_BY_FRAM = 10
 REPULS_RADIUS = 100
 ARROW_ROTATING_SPEED = 10
 ARROW_ACCELERATION = 10
-ARROW_MAX_SPEED = 500
-ARROW_ELASTICITY = 1.0
+ARROW_MAX_SPEED = 1000
+ARROW_ELASTICITY = 0.5
+ARROW_SIZE = (50, 200)   # between the first and the second
+ARROW_MASS_MULTIPLIER = 10  # 0 produce an error
 
 MOUSE_HIT_BOX_VISIBLE = False
 ARROW_HIT_BOX_VISIBLE = False
@@ -51,7 +53,9 @@ class Arrow(pygame.sprite.Sprite):
         self.surface.fill((0, 0, 0, 0))
         pygame.draw.polygon(self.surface, color, self.points)
         self.image = self.surface.copy()
-        self.body = pymunk.Body(1, 100)
+        self.mass = x_size * y_size * ARROW_MASS_MULTIPLIER
+        moment = pymunk.moment_for_poly(self.mass, self.points)
+        self.body = pymunk.Body(self.mass, moment)
         self.body.position = self.x, self.y
         self.body.velocity_func = limit_velocity
         self.shape = pymunk.Poly(self.body, [(x-self.size[0]/2, y-self.size[1]/2) for x, y in self.points])
@@ -71,8 +75,8 @@ class Arrow(pygame.sprite.Sprite):
         return angle_degrees
     
     def get_vecteur(self, angle, x, y):
-        x = math.cos(math.radians(angle)) * FPS * STEP_BY_FRAM * ARROW_ACCELERATION
-        y = -math.sin(math.radians(angle)) * FPS * STEP_BY_FRAM * ARROW_ACCELERATION
+        x = math.cos(math.radians(angle)) * FPS * STEP_BY_FRAM * ARROW_ACCELERATION * self.mass
+        y = -math.sin(math.radians(angle)) * FPS * STEP_BY_FRAM * ARROW_ACCELERATION * self.mass
         return x, y
 
     def get_distance(self, x, y):
@@ -139,7 +143,9 @@ if TYPE_GENERATION == RANDOM:
         x = random.randint(0, SCREEN_WIDTH)
         y = random.randint(0, SCREEN_HEIGHT)
         color = (random.randint(100, 255), random.randint(100, 255), random.randint(100, 255))
-        arrow = Arrow(x, y, 100, 50, color)
+        lenght = random.randint(*ARROW_SIZE)
+        height = lenght / 2
+        arrow = Arrow(x, y, lenght, height, color)
         arrow_group.add(arrow)
 
 elif TYPE_GENERATION == GENERATIV:
