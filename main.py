@@ -137,6 +137,7 @@ class Cursor:
     def enable(self):
         space.add(self.body, self.shape)
 
+# generate the arrows
 arrow_group = pygame.sprite.Group()
 if TYPE_GENERATION == RANDOM:
     for i in range(NUM_OF_AROWS):
@@ -159,10 +160,12 @@ elif TYPE_GENERATION == GENERATIV:
             arrow = Arrow(x, y, 100, 50, color)
             arrow_group.add(arrow)
 
+# creat the cursor object
 cursor = Cursor()
 cursor.enable()
 
 while True:
+    # events gestion
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
@@ -173,11 +176,13 @@ while True:
                 pygame.quit()
                 sys.exit()
 
+    # update and draw the object
     screen.fill("#000000")
     cursor.update()
     arrow_group.update(pos=pygame.mouse.get_pos())
     arrow_group.draw(screen)
 
+    # update the physic simulation
     dt = dec(1) / FPS
     for i in range(STEP_BY_FRAM):
         space.step(dt / STEP_BY_FRAM)
