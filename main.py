@@ -24,6 +24,7 @@ REPULS_RADIUS = 100
 ARROW_ROTATING_SPEED = 10
 ARROW_ACCELERATION = 10
 ARROW_MAX_SPEED = 500
+ARROW_ELASTICITY = 1.0
 
 MOUSE_HIT_BOX_VISIBLE = False
 ARROW_HIT_BOX_VISIBLE = False
@@ -55,7 +56,7 @@ class Arrow(pygame.sprite.Sprite):
         self.body.velocity_func = limit_velocity
         self.shape = pymunk.Poly(self.body, [(x-self.size[0]/2, y-self.size[1]/2) for x, y in self.points])
         self.shape.friction = 0.0
-        self.shape.elasticity = 0.0
+        self.shape.elasticity = ARROW_ELASTICITY
         space.add(self.body, self.shape)
 
     @property
