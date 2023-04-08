@@ -28,6 +28,8 @@ ARROW_ELASTICITY = 0.5
 ARROW_SIZE = (50, 200)      # between the first and the second
 ARROW_MASS_MULTIPLIER = 10  # 0 produce an error
 ARROW_DISTANCE_SCALING = 0.001
+MIN_DISTANCE_SCALING = 0.5
+MAX_DISTANCE_SCALING = 2
 
 MOUSE_HIT_BOX_VISIBLE = True
 ARROW_HIT_BOX_VISIBLE = False
@@ -104,8 +106,10 @@ class Arrow(pygame.sprite.Sprite):
         """
         angle_radians = math.radians(angle)
         distance = self.get_distance(x, y)
-        x = math.cos(angle_radians) * FPS * STEP_BY_FRAM * ARROW_ACCELERATION * self.mass * distance * ARROW_DISTANCE_SCALING
-        y = -math.sin(angle_radians) * FPS * STEP_BY_FRAM * ARROW_ACCELERATION * self.mass * distance * ARROW_DISTANCE_SCALING
+        distance_scaling =  min(MAX_DISTANCE_SCALING, max(MIN_DISTANCE_SCALING, distance * ARROW_DISTANCE_SCALING))
+        multiplier = FPS * STEP_BY_FRAM * ARROW_ACCELERATION * self.mass * distance_scaling
+        x = math.cos(angle_radians) * multiplier
+        y = -math.sin(angle_radians) * multiplier
         return x, y
 
     def get_distance(self, x: float, y: float) -> float:
