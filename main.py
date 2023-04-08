@@ -57,28 +57,6 @@ class Arrow(pygame.sprite.Sprite):
         self.shape.friction = 0.0
         self.shape.elasticity = 0.0
         space.add(self.body, self.shape)
-    
-    # def _get_x(self):
-    #     return self.__x
-    # def _set_x(self, x):
-    #     self.__x = int(x)
-    #     self.rect.centerx = x
-    # x = property(_get_x, _set_x)
-
-    # def _get_y(self):
-    #     return self.__y
-    # def _set_y(self, y):
-    #     self.__y = int(y)
-    #     self.rect.centery = y
-    # y = property(_get_y, _set_y)
-
-    # @property
-    # def x(self):
-    #     return self.__x
-    # @x.setter
-    # def x(self, x):
-    #     self.__x = x
-    #     self.rect.centerx = x
 
     @property
     def rect(self):
