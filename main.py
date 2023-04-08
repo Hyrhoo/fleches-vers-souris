@@ -14,25 +14,27 @@ space.gravity = (0, 0)
 GENERATIV = 1
 RANDOM = 2
 
-NUM_ARROWS_X = 10
-NUM_ARROWS_Y = 10
-TYPE_GENERATION = RANDOM   # GENERATIV or RANDOM
-NUM_OF_AROWS = 20          # for RANDOM
 FPS = 30
 STEP_BY_FRAM = 10
-REPULS_RADIUS = 100
-ARROW_ROTATING_SPEED = 10
+CURSOR_REPULS_RADIUS = 50
+NUM_ARROWS_X = 10
+NUM_ARROWS_Y = 10
+TYPE_GENERATION = RANDOM    # GENERATIV or RANDOM
+NUM_OF_AROWS = 50           # for RANDOM
+ARROW_ROTATING_SPEED = 5
 ARROW_ACCELERATION = 10
 ARROW_MAX_SPEED = 1000
 ARROW_ELASTICITY = 0.5
-ARROW_SIZE = (50, 200)   # between the first and the second
+ARROW_SIZE = (50, 200)      # between the first and the second
 ARROW_MASS_MULTIPLIER = 10  # 0 produce an error
+ARROW_DISTANCE_SCALING = 0.001
 
-MOUSE_HIT_BOX_VISIBLE = False
+MOUSE_HIT_BOX_VISIBLE = True
 ARROW_HIT_BOX_VISIBLE = False
 
 
-def limit_velocity(body: pymunk.Body, gravity, damping, dt):
+def limit_velocity(body: pymunk.Body, gravity: tuple[float, float], damping: float, dt: float) -> None:
+    """symply a function to limit the arrow's speed"""
     max_velocity = ARROW_MAX_SPEED
     pymunk.Body.update_velocity(body, gravity, damping, dt)
     l = body.velocity.length
@@ -41,8 +43,10 @@ def limit_velocity(body: pymunk.Body, gravity, damping, dt):
         body.velocity = body.velocity * scale
 
 class Arrow(pygame.sprite.Sprite):
+    """a class to have arrows trying to reach a certain point"""
 
     def __init__(self, x, y, x_size, y_size, color) -> None:
+        """initialize the arrow"""
         super().__init__()
         self.x = x
         self.y = y
@@ -59,37 +63,81 @@ class Arrow(pygame.sprite.Sprite):
         self.body.position = self.x, self.y
         self.body.velocity_func = limit_velocity
         self.shape = pymunk.Poly(self.body, [(x-self.size[0]/2, y-self.size[1]/2) for x, y in self.points])
-        self.shape.friction = 0.0
         self.shape.elasticity = ARROW_ELASTICITY
         space.add(self.body, self.shape)
 
     @property
-    def rect(self):
+    def rect(self) -> pygame.Rect:
+        """get the rect of the arrow
+
+        Returns:
+            pygame.Rect: the rect of the arrow
+        """
         rect = self.image.get_rect(center=self.surface.get_rect().center)
         rect.center = self.x, self.y
         return rect
-    
-    def get_angle(self, x, y):
+
+    def get_angle(self, x: float, y: float) -> float:
+        """get the angle between the arrow and the given point
+
+        Args:
+            x (float): the x pos of the point
+            y (float): the y pos of the point
+
+        Returns:
+            float: the angle in degrees
+        """
         angle_radions = math.atan2(y - self.y, x - self.x)
         angle_degrees = math.degrees(angle_radions)
         return angle_degrees
-    
-    def get_vecteur(self, angle, x, y):
-        x = math.cos(math.radians(angle)) * FPS * STEP_BY_FRAM * ARROW_ACCELERATION * self.mass
-        y = -math.sin(math.radians(angle)) * FPS * STEP_BY_FRAM * ARROW_ACCELERATION * self.mass
+
+    def get_vector(self, angle: float, x: float, y: float) -> tuple[float, float]:
+        """get the vector of the given angle scaled on the distance between the arrow and the given point
+
+        Args:
+            angle (float): the angle in degrees
+            x (float): the x pos of the point
+            y (float): the y pos of the point
+
+        Returns:
+            tuple[float, float]: the vecteur
+        """
+        angle_radians = math.radians(angle)
+        distance = self.get_distance(x, y)
+        x = math.cos(angle_radians) * FPS * STEP_BY_FRAM * ARROW_ACCELERATION * self.mass * distance * ARROW_DISTANCE_SCALING
+        y = -math.sin(angle_radians) * FPS * STEP_BY_FRAM * ARROW_ACCELERATION * self.mass * distance * ARROW_DISTANCE_SCALING
         return x, y
 
-    def get_distance(self, x, y):
+    def get_distance(self, x: float, y: float) -> float:
+        """get the distance between the arrow and the given point
+
+        Args:
+            x (float): the x pos of the point
+            y (float): the y pos of the point
+
+        Returns:
+            float: the distanc
+        """
         return ((x-self.x)**2 + (y-self.y)**2)**0.5
-    
-    def apply_force(self, force):
+
+    def apply_force(self, force: tuple[float, float]) -> None:
+        """apply a force to the arrow
+
+        Args:
+            force (tuple[float, float]): the force to apply
+        """
         x1, y1 = self.body.velocity
         x2, y2 = force
         x = x2 - x1
         y = y2 - y1
         self.body.force = x, y
-    
-    def apply_angle(self, angle):
+
+    def apply_angle(self, angle: float) -> None:
+        """apply an angle force to reach the given angle
+
+        Args:
+            angle (float): the angle to reach in degrees
+        """
         body_angle = math.degrees(self.body.angle) % 360
         angle_diffrence = angle - body_angle
         if angle_diffrence > 180:
@@ -98,43 +146,56 @@ class Arrow(pygame.sprite.Sprite):
             angle_diffrence += 360
         self.body.angular_velocity = math.radians(angle_diffrence*ARROW_ROTATING_SPEED)
 
-    def update(self, pos) -> None:
+    def update(self, pos: tuple[float, float]) -> None:
+        """update the arrow
+
+        Args:
+            pos (tuple[float, float]): the position to reach
+        """
         self.x, self.y = self.body.position
         angle = self.get_angle(*pos)
         body_angle = math.degrees(self.body.angle)
-        vecteur = self.get_vecteur(-body_angle, *pos)
+        vecteur = self.get_vector(-body_angle, *pos)
         self.apply_angle(angle)
         self.apply_force(vecteur)
         self.image = pygame.transform.rotate(self.surface, -body_angle)
         if ARROW_HIT_BOX_VISIBLE:
             self.draw()
-    
-    def draw(self):
+
+    def draw(self) -> None:
+        """draw the hitbox of the arrow"""
         points = [v.rotated(self.body.angle) + self.body.position for v in self.shape.get_vertices()]
         pygame.draw.polygon(screen, "#FFFFFF", points)
 
 class Cursor:
+    """a classe for the cursor to have collision"""
 
     def __init__(self) -> None:
+        """initialize the cursor"""
         self.body = pymunk.Body(body_type=pymunk.Body.KINEMATIC)
         self.body.position = pygame.mouse.get_rel()
-        self.shape = pymunk.shapes.Circle(self.body, REPULS_RADIUS)
+        self.shape = pymunk.shapes.Circle(self.body, CURSOR_REPULS_RADIUS)
         self.shape.elasticity = 1
-    
-    def update(self):
+
+    def update(self) -> None:
+        """update the cursor"""
         dep = pygame.mouse.get_rel()
         dep = [i * FPS for i in dep]
         self.body.velocity = dep
         if MOUSE_HIT_BOX_VISIBLE:
             self.draw()
-    
-    def draw(self):
-        pygame.draw.circle(screen, "#FFFFFF", self.body.position, REPULS_RADIUS)
 
-    def disable(self):
+    def draw(self) -> None:
+        """draw the hitbox of the cursor"""
+        pygame.draw.circle(screen, "#FFFFFF", self.body.position, CURSOR_REPULS_RADIUS)
+
+    def disable(self) -> None:
+        """disaple the cursor's collisions"""
         space.remove(self.body, self.shape)
-    
-    def enable(self):
+
+    def enable(self) -> None:
+        """enable the cursor's collisions"""
+        self.body.position = pygame.mouse.get_pos()
         space.add(self.body, self.shape)
 
 # generate the arrows
@@ -170,7 +231,7 @@ while True:
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
-        
+
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 pygame.quit()
