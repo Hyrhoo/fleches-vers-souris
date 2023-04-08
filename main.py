@@ -20,8 +20,8 @@ CURSOR_REPULS_RADIUS = 50
 NUM_ARROWS_X = 10
 NUM_ARROWS_Y = 10
 TYPE_GENERATION = RANDOM    # GENERATIV or RANDOM
-NUM_OF_AROWS = 50           # for RANDOM
-ARROW_SIZE = (50, 200)      # between the first and the second
+NUM_OF_AROWS = 50           # (only for RANDOM)
+ARROW_SIZE = (50, 200)      # between the first and the second (only for RANDOM)
 ARROW_ELASTICITY = 0.5
 ARROW_ROTATING_SPEED = 5
 ARROW_ACCELERATION = 10
@@ -47,7 +47,7 @@ def limit_velocity(body: pymunk.Body, gravity: tuple[float, float], damping: flo
 class Arrow(pygame.sprite.Sprite):
     """a class to have arrows trying to reach a certain point"""
 
-    def __init__(self, x, y, x_size, y_size, color) -> None:
+    def __init__(self, x: float, y: float, x_size: float, y_size: float, color: tuple[int, int, int]) -> None:
         """initialize the arrow"""
         super().__init__()
         self.x = x
