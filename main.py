@@ -13,6 +13,9 @@ space.gravity = (0, 0)
 # Type of generation
 GENERATIV = 1
 RANDOM = 2
+# Type of arrow moving
+FORCE_APPLY_TO_THE_DIRECTION = 1    # The arrows will have a force apply to it current direction which will cause the arrow to "drift"
+VELOCITY_APPLY_TO_THE_DIRECTION = 2 # The arrows will have a velocity apply to it current direction which will cause the arrow to go straight ahead
 
 # Constantes
 FPS = 30
@@ -22,8 +25,9 @@ NUM_ARROWS_X = 10
 NUM_ARROWS_Y = 10
 TYPE_GENERATION = RANDOM    # GENERATIV or RANDOM
 NUM_OF_AROWS = 50           # (only for RANDOM)
-ARROW_SIZE = (50, 200)      # between the first and the second (only for RANDOM)
+ARROW_SIZE = (50, 200)      # Between the first and the second (only for RANDOM)
 ARROW_ELASTICITY = 0.5
+ARROW_MOVING_TYPE = FORCE_APPLY_TO_THE_DIRECTION    # FORCE_APPLY_TO_THE_DIRECTION or VELOCITY_APPLY_TO_THE_DIRECTION
 ARROW_ROTATING_SPEED = 5
 ARROW_ACCELERATION = 10
 ARROW_MAX_SPEED = 1000
@@ -108,7 +112,10 @@ class Arrow(pygame.sprite.Sprite):
         angle_radians = math.radians(angle)
         distance = self.get_distance(x, y)
         distance_scaling =  min(MAX_DISTANCE_SCALING, max(MIN_DISTANCE_SCALING, distance * ARROW_DISTANCE_SCALING))
-        multiplier = FPS * STEP_BY_FRAM * ARROW_ACCELERATION * self.mass * distance_scaling
+        if ARROW_MOVING_TYPE == FORCE_APPLY_TO_THE_DIRECTION:
+            multiplier = FPS * STEP_BY_FRAM * ARROW_ACCELERATION * self.mass * distance_scaling
+        elif ARROW_MOVING_TYPE == VELOCITY_APPLY_TO_THE_DIRECTION:
+            multiplier = FPS * ARROW_ACCELERATION * distance_scaling
         x = math.cos(angle_radians) * multiplier
         y = -math.sin(angle_radians) * multiplier
         return x, y
@@ -135,7 +142,10 @@ class Arrow(pygame.sprite.Sprite):
         x2, y2 = force
         x = x2 - x1
         y = y2 - y1
-        self.body.force = x, y
+        if ARROW_MOVING_TYPE == VELOCITY_APPLY_TO_THE_DIRECTION:
+            self.body.velocity += x, y
+        elif ARROW_MOVING_TYPE == FORCE_APPLY_TO_THE_DIRECTION:
+            self.body.force = x, y
 
     def apply_angle(self, angle: float) -> None:
         """apply an angle force to reach the given angle
