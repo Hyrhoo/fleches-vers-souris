@@ -27,7 +27,8 @@ TYPE_GENERATION = RANDOM    # GENERATIV or RANDOM
 NUM_OF_AROWS = 50           # (only for RANDOM)
 ARROW_SIZE = (50, 200)      # Between the first and the second (only for RANDOM)
 ARROW_ELASTICITY = 0.5
-ARROW_MOVING_TYPE = FORCE_APPLY_TO_THE_DIRECTION    # FORCE_APPLY_TO_THE_DIRECTION or VELOCITY_APPLY_TO_THE_DIRECTION
+ARROW_MOVING_TYPE = VELOCITY_APPLY_TO_THE_DIRECTION    # FORCE_APPLY_TO_THE_DIRECTION or VELOCITY_APPLY_TO_THE_DIRECTION
+ARROW_LIBERTY = 25          # (only for VELOCITY_APPLY_TO_THE_DIRECTION) a heigh value will cose the arrow to be more affected by their environment but to be slower
 ARROW_ROTATING_SPEED = 5
 ARROW_ACCELERATION = 10
 ARROW_MAX_SPEED = 1000
@@ -138,13 +139,17 @@ class Arrow(pygame.sprite.Sprite):
         Args:
             force (tuple[float, float]): the force to apply
         """
-        x1, y1 = self.body.velocity
-        x2, y2 = force
-        x = x2 - x1
-        y = y2 - y1
         if ARROW_MOVING_TYPE == VELOCITY_APPLY_TO_THE_DIRECTION:
+            x1, y1 = self.body.velocity
+            x2, y2 = force
+            x = (x2 - x1) / ARROW_LIBERTY
+            y = (y2 - y1) / ARROW_LIBERTY
             self.body.velocity += x, y
         elif ARROW_MOVING_TYPE == FORCE_APPLY_TO_THE_DIRECTION:
+            x1, y1 = self.body.velocity
+            x2, y2 = force
+            x = x2 - x1
+            y = y2 - y1
             self.body.force = x, y
 
     def apply_angle(self, angle: float) -> None:
