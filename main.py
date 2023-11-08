@@ -27,6 +27,7 @@ TYPE_GENERATION = RANDOM    # GENERATIV or RANDOM
 NUM_OF_AROWS = 50           # (only for RANDOM)
 ARROW_SIZE = (50, 200)      # Between the first and the second (only for RANDOM)
 ARROW_ELASTICITY = 0.5
+CURSOR_ELASTICITY = 1.0
 ARROW_MOVING_TYPE = FORCE_APPLY_TO_THE_DIRECTION    # FORCE_APPLY_TO_THE_DIRECTION or VELOCITY_APPLY_TO_THE_DIRECTION
 ARROW_LIBERTY = 25          # (only for VELOCITY_APPLY_TO_THE_DIRECTION) a heigh value will cose the arrow to be more affected by their environment but to be slower
 ARROW_ROTATING_SPEED = 5
@@ -195,15 +196,19 @@ class Cursor:
         self.body = pymunk.Body(body_type=pymunk.Body.KINEMATIC)
         self.body.position = pygame.mouse.get_rel()
         self.shape = pymunk.shapes.Circle(self.body, CURSOR_REPULS_RADIUS)
-        self.shape.elasticity = 1
+        self.shape.elasticity = CURSOR_ELASTICITY
+        self.focus = False
 
     def update(self) -> None:
         """update the cursor"""
         dep = pygame.mouse.get_rel()
         dep = [i * FPS for i in dep]
         self.body.velocity = dep
+        if self.get_focus():
+            self.reset_pos()
         if MOUSE_HIT_BOX_VISIBLE:
             self.draw()
+    
 
     def draw(self) -> None:
         """draw the hitbox of the cursor"""
@@ -215,8 +220,25 @@ class Cursor:
 
     def enable(self) -> None:
         """enable the cursor's collisions"""
-        self.body.position = pygame.mouse.get_pos()
         space.add(self.body, self.shape)
+    
+    def get_focus(self):
+        """check if the corsor just get the focus
+
+        Returns:
+            bool: if the cursor just get the focus
+        """
+        get_focused = pygame.mouse.get_focused()
+        if get_focused and not self.focus:
+            self.focus = True
+            return True
+        if not get_focused and self.focus:
+            self.focus = False
+            return False
+    
+    def reset_pos(self) -> None:
+        """reset the cursor's pos"""
+        self.body.position = pygame.mouse.get_pos()
 
 # Generate the arrows
 arrow_group = pygame.sprite.Group()
